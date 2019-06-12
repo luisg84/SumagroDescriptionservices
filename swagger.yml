@@ -1,0 +1,199 @@
+openapi: 3.0.0
+info:
+  title: Sumagro-2.0
+  version: 1.0.0
+paths:
+ /sumagro-app/register:
+   post:
+    tags:
+      - ADMIN
+    summary: "Service designed to send registration message to Email"
+    operationId: "register"
+    parameters:
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: "string"
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/userRegisterRequest"
+    responses:
+      204:
+        description: "Register Successfull"
+        
+ /sumagro-app/order:
+  post:
+    tags:
+      - ADMIN
+    summary: "Service designed to save a order by user"
+    operationId: "registerOrder"
+    parameters:
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: "string"
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/orderRequest"
+    responses:
+      204:
+        description: "Register Successfull"
+  get:
+    tags:
+      - ADMIN
+    summary: "service designed to list of orders"
+    operationId: "listOrders"
+    parameters:
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: "string"
+          format: uuid
+    responses:
+      200:
+        description: "orders"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/listOrders"
+ /sumagro-app/order/{orderId}:
+  patch:
+    tags:
+      - CAPTURIST
+    summary: "service designed to update status of order"
+    operationId: "orderStatus"
+    parameters:
+      - in: header
+        required: true
+        name: Token
+        schema:
+          type: "string"
+          format: uuid
+      - in: path
+        required: true
+        name: orderId
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/orderStatusUpdate"
+    responses:
+      200:
+        description: "ordersUpdateStatus"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Success"
+components:
+  
+  schemas:
+    Success:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+    userRegisterRequest:
+      type: object
+      properties:
+        email:
+          type: "string"
+        password:
+          type: "string"
+    orderRequest:
+      type: object
+      properties:
+        enterpriseName:
+          type: string
+        RFC:
+          type: string
+        address:
+          type: string
+        client:
+          type: string
+        clientAddress:
+          type: string
+        remissionNumber:
+          type: number
+        shippingDate:
+          type: string
+          format: date
+        quantity:
+          type: number
+        unit:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+        totalIndividual:
+          type: number
+        totalGeneral:
+          type: number
+        advance:
+          type: number
+    listOrders:
+      type: array
+      items:
+        type: object
+        properties:
+          orderId:
+            type: number
+          enterpriseName:
+            type: string
+          RFC:
+            type: string
+          address:
+            type: string
+          client:
+            type: string
+          clientAddress:
+            type: string
+          remissionNumber:
+            type: number
+          shippingDate:
+            type: string
+            format: date
+          quantity:
+            type: number
+          unit:
+            type: string
+          description:
+            type: string
+          price:
+            type: number
+          totalIndividual:
+            type: number
+          totalGeneral:
+            type: number
+          advance:
+            type: number
+          status:
+            type: string
+    orderStatusUpdate:
+      type: object
+      properties:
+        status:
+          type: "string"
+          enum:
+            - TRANSIT
+            - DELIVERED
+          
+      
+  
+   
