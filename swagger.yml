@@ -135,6 +135,28 @@ paths:
     responses:
       201:
         description: "Token Erased"
+ '/sumagro-app/generate-pdf/:orderId':
+  get:
+    tags:
+      - ADMIN
+    summary: "Method designed to get a PDF of an Order"
+    operationId: "GeneratePDF"
+    parameters:
+      - in: header
+        required: true
+        name: token
+        schema:
+          type: "string"
+          format: uuid
+      - in: path
+        required: true
+        name: orderId
+        schema:
+          type: "string"
+          format: "uuid"
+    responses:
+      200: 
+        description: "PDF"
 components:
   
   schemas:
