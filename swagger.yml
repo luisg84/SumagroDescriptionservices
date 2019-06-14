@@ -175,16 +175,21 @@ components:
         shippingDate:
           type: string
           format: date
-        quantity:
-          type: number
-        unit:
-          type: string
-        description:
-          type: string
-        price:
-          type: number
-        totalIndividual:
-          type: number
+        subOrders:
+          type: array
+          items:
+            type: object
+            properties:
+              quantity:
+                type: number
+              unit:
+                type: string
+              description:
+                type: string
+              unitPrice:
+                type: number
+              total:
+                type: number
         totalGeneral:
           type: number
         advance:
@@ -211,16 +216,21 @@ components:
           shippingDate:
             type: string
             format: date
-          quantity:
-            type: number
-          unit:
-            type: string
-          description:
-            type: string
-          price:
-            type: number
-          totalIndividual:
-            type: number
+          subOrders:
+            type: array
+            items:
+              type: object
+              properties:
+                quantity:
+                  type: number
+                unit:
+                  type: string
+                description:
+                  type: string
+                unitPrice:
+                  type: number
+                total:
+                  type: number
           totalGeneral:
             type: number
           advance:
