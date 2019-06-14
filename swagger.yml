@@ -12,7 +12,7 @@ paths:
     parameters:
       - in: header
         required: true
-        name: Token
+        name: token
         schema:
           type: "string"
           format: uuid
@@ -35,7 +35,7 @@ paths:
     parameters:
       - in: header
         required: true
-        name: Token
+        name: token
         schema:
           type: "string"
           format: uuid
@@ -56,7 +56,7 @@ paths:
     parameters:
       - in: header
         required: true
-        name: Token
+        name: token
         schema:
           type: "string"
           format: uuid
@@ -76,7 +76,7 @@ paths:
     parameters:
       - in: header
         required: true
-        name: Token
+        name: token
         schema:
           type: "string"
           format: uuid
@@ -98,9 +98,51 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/Success"
+ /sumagro-app/token:
+  post:
+    tags:
+      - DEFAULT
+    summary: "service designed to assing token a user"
+    operationId: "generateToken"
+    parameters:
+      - in: header
+        required: true
+        name: token
+        schema:
+          type: "string"
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/tokenBody"
+    responses:
+      201:
+        description: "Token Registered"
+  delete:
+    tags:
+      - DEFAULT
+    summary: "service designed to delete a token of a user"
+    operationId: "deleteToken"
+    parameters:
+      - in: header
+        required: true
+        name: token
+        schema:
+          type: "string"
+          format: uuid
+    responses:
+      201:
+        description: "Token Erased"
 components:
   
   schemas:
+    tokenBody:
+      type: object
+      properties:
+        token:
+          type: string
     Success:
       type: object
       properties:
@@ -193,6 +235,7 @@ components:
           enum:
             - TRANSIT
             - DELIVERED
+            - ORDER_CLOSED
           
       
   
