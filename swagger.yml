@@ -157,9 +157,51 @@ paths:
     responses:
       200: 
         description: "PDF"
+ /sumagro-app/generate-pdf/chargeformat:
+   get:
+    tags:
+      - ADMIN
+    summary: "method designed to generate a pdf by orderId"
+    operationId: "generatePdfByOrder"
+    parameters:
+      - in: header
+        required: true
+        name: token
+        schema:
+          type: "string"
+          format: uuid
+    responses:
+      200:
+        description: "PDF"
+ /sumagro-app/send-pdf/:orderId:
+   post:
+    tags:
+      - ADMIN
+    summary: "method designed to send a email with pdf by orderId"
+    operationId: "senderPdf"
+    parameters:
+      - in: header
+        required: true
+        name: token
+        schema:
+          type: "string"
+          format: uuid
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/pdfSenderRequest"
+    responses:
+      200: 
+        description: "Sended"
 components:
-  
   schemas:
+    pdfSenderRequest:
+      type: object
+      properties:
+        email:
+          type: string
     tokenBody:
       type: object
       properties:
