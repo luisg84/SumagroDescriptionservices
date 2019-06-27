@@ -64,10 +64,10 @@ paths:
       parameters:
       - in: "body"
         name: "body"
-        description: "El objeto de request contiene 7 atributos: flet, client, clientAddress, remissionNumber, shippingDate, subOrders, totalGeneral, advance."
+        description: "El objeto de request contiene 8 atributos: client, clientAddress, remissionNumber, shippingDate, subOrders, totalGeneral, advance, ingenioId."
         required: true
         schema:
-          $ref: "#/definitions/registerUser"
+          $ref: "#/definitions/registerOrder"
       responses:
         201:
           description: OK
@@ -392,7 +392,7 @@ paths:
           description: "Bad Request"
           schema:
             $ref: '#/definitions/resultBadRequest'
-  /sumagro-app/sacks:
+  /sumagro-app/capturist/sacks:
     post:
       tags: 
         - "Sumagro"
@@ -401,7 +401,7 @@ paths:
       parameters:
       - in: "body"
         name: "body"
-        description: "El objeto de request contiene 3 atributos: name,address,email."
+        description: "El objeto de request contiene 6 atributos: id del saco,ingenioId,description,flet, plates, operator."
         required: true
         schema:
           $ref: "#/definitions/postSacks"
@@ -483,6 +483,38 @@ paths:
 schemes:
  - https
 definitions:
+  registerOrder:
+    type: object
+    properties:
+      client:
+        type: string
+      clientAddress:
+        type: string
+      remissionNumber:
+        type: number
+      shippingDate:
+        type: string
+      subObders:
+        type: array
+        items:
+          type: object
+          properties:
+            description:
+              type: string
+            quantity:
+              type: number
+            total:
+              type: number
+            unit:
+              type: string
+            unitPrice:
+              type: number
+      totalGeneral:
+        type: number
+      ingenioId:
+        type: string
+      advance:
+        type: number
   registerUser:
     type: "object"
     properties:
@@ -646,10 +678,18 @@ definitions:
   postSacks:
     type: "object"
     properties:
-      sackId:
+      id:
         type: "string"
       ingenioId:
         type: "string"
+      description:
+        type: string
+      flet:
+        type: string
+      plates:
+        type: string
+      operator:
+        type: string
   statusOrder:
     type: "object"
     properties:
