@@ -1,316 +1,666 @@
-openapi: 3.0.0
+swagger: '2.0'
 info:
-  title: Sumagro-2.0
-  version: 1.0.0
+  version: '1.0.0'
+  title: 'Sumagro '
+  description: 'Sumagro backend and microservices'
 paths:
- /sumagro-app/register:
-   post:
-    tags:
-      - ADMIN
-    summary: "Service designed to send registration message to Email"
-    operationId: "register"
-    parameters:
-      - in: header
+  /sumagro-app/register:
+    post:
+      tags:
+      - "Sumagro"
+      summary: "Realiza el registro de un usuario."
+      description: "* Este end-point recibe un request con los parametros email,uid,rol,ingenioId. \n * El end-point recibirá los parametros y los verificará, despues de verificarlos. Verifica que el email no este ya registrado, en caso que este registrado retorna un mensaje que la cuenta ya esta registrada. \nUna vez verificado el email se envia a un manejador de eventos controller la método saveUsers, el cual se encarga de registrar el usuario en la base de datos.\nUna vez registrado el usuario le enviara un correo electronico mediante el metodo sendMailNewAccount enviando username y password."
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 4 atributos: el email,uid,rol,ingenioId."
         required: true
-        name: token
         schema:
-          type: "string"
-          format: uuid
-    requestBody:
-      required: true
-      content:
-        application/json:
+          $ref: "#/definitions/registerUser"
+      responses:
+        '200':
+          description: "OK -> User register"
           schema:
-            $ref: "#/components/schemas/userRegisterRequest"
-    responses:
-      204:
-        description: "Register Successfull"
-        
- /sumagro-app/order:
-  post:
-    tags:
-      - ADMIN
-    summary: "Service designed to save a order by user"
-    operationId: "registerOrder"
-    parameters:
-      - in: header
-        required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-    requestBody:
-      required: true
-      content:
-        application/json:
+            $ref: '#/definitions/resultOkUser'
+        '400':
+          description: "Email is register"
           schema:
-            $ref: "#/components/schemas/orderRequest"
-    responses:
-      204:
-        description: "Register Successfull"
-  get:
-    tags:
-      - ADMIN
-    summary: "service designed to list of orders"
-    operationId: "listOrders"
-    parameters:
-      - in: header
+            $ref: '#/definitions/resultOkUser'
+  /sumagro-app/user/:userId:
+    delete:
+      tags: 
+        - "Sumagro"
+      summary: "Realiza la eliminación de un usuario."
+      description: "* Se reciben el parametro userId en el end-point y se mandan a un manejador de eventos 'controller' en el metodo *'deleteUser'*\nVerificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica el parametro en caso que no lo obtenga retornara un error 400. Una vez validado lo enviara a un manejador de eventos controller al metodo deleteUser el cual se encargara se eliminar el usuario, una vez eliminado retornara un 200"
+      operationId: "userId"
+      parameters:
+      - name: userId
+        in: path
+        type: string
         required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-    responses:
-      200:
-        description: "orders"
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/listOrders"
- /sumagro-app/order/{orderId}:
-  patch:
-    tags:
-      - CAPTURIST
-    summary: "service designed to update status of order"
-    operationId: "orderStatus"
-    parameters:
-      - in: header
-        required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-      - in: path
-        required: true
-        name: orderId
-        schema:
-          type: string
-    requestBody:
-      required: true
-      content:
-        application/json:
+      responses:
+        200:
+          description: OK
           schema:
-            $ref: "#/components/schemas/orderStatusUpdate"
-    responses:
-      200:
-        description: "ordersUpdateStatus"
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Success"
- /sumagro-app/token:
-  post:
-    tags:
-      - DEFAULT
-    summary: "service designed to assing token a user"
-    operationId: "generateToken"
-    parameters:
-      - in: header
-        required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-    requestBody:
-      required: true
-      content:
-        application/json:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
           schema:
-            $ref: "#/components/schemas/tokenBody"
-    responses:
-      201:
-        description: "Token Registered"
-  delete:
-    tags:
-      - DEFAULT
-    summary: "service designed to delete a token of a user"
-    operationId: "deleteToken"
-    parameters:
-      - in: header
-        required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-    responses:
-      201:
-        description: "Token Erased"
- '/sumagro-app/generate-pdf/:orderId':
-  get:
-    tags:
-      - ADMIN
-    summary: "Method designed to get a PDF of an Order"
-    operationId: "GeneratePDF"
-    parameters:
-      - in: header
-        required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-      - in: path
-        required: true
-        name: orderId
-        schema:
-          type: "string"
-          format: "uuid"
-    responses:
-      200: 
-        description: "PDF"
- /sumagro-app/generate-pdf/chargeformat:
-   get:
-    tags:
-      - ADMIN
-    summary: "method designed to generate a pdf by orderId"
-    operationId: "generatePdfByOrder"
-    parameters:
-      - in: header
-        required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-    responses:
-      200:
-        description: "PDF"
- /sumagro-app/send-pdf/:orderId:
-   post:
-    tags:
-      - ADMIN
-    summary: "method designed to send a email with pdf by orderId"
-    operationId: "senderPdf"
-    parameters:
-      - in: header
-        required: true
-        name: token
-        schema:
-          type: "string"
-          format: uuid
-    requestBody:
-      required: true
-      content:
-        application/json:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
           schema:
-            $ref: "#/components/schemas/pdfSenderRequest"
-    responses:
-      200: 
-        description: "Sended"
-components:
-  schemas:
-    pdfSenderRequest:
-      type: object
-      properties:
-        email:
+            $ref: '#/definitions/unauthorized'
+  /sumagro-app/order:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "Registrar orden."
+      description: "* Se reciben un request con los parametros flet, client, clientAddress, remissionNumber, shippingDate, subOrders, totalGeneral, advance. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'createOrder'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos registra mediante el metodo saveOrder, una vez registrado la order mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 7 atributos: flet, client, clientAddress, remissionNumber, shippingDate, subOrders, totalGeneral, advance."
+        required: true
+        schema:
+          $ref: "#/definitions/registerUser"
+      responses:
+        201:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+    get:
+      tags: 
+        - "Sumagro"
+      summary: "Obtener todas las ordenes."
+      description: "*Recibe el parametro status. \n * En el end-point recibira el parametro y los mandara a un manejador de eventos 'controller' al metodo 'getOrders'\n * se ejecutara el metodo getOrders el cual realizara la consulta obteniendo todas las ordenes, una vez reailizada la consulta retornara 200"
+      parameters:
+      - name: status
+        in: query
+        type: string
+        required: false
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/orderGet'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+  /sumagro-app/order/:orderId:
+    patch:
+      tags: 
+        - "Sumagro"
+      summary: "Modifica el status de una orden."
+      description: "* Se reciben los parametros status y orderId. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'updateStatusOrder'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos actualiaza el status mediante el metodo updateOrderStatus, una vez registrado la order mandara un 200"
+      parameters:
+        - name: status
+          in: query
           type: string
-    tokenBody:
-      type: object
-      properties:
-        token:
+          required: true
+        - name: orderId
+          in: path
           type: string
-    Success:
-      type: object
-      properties:
-        code:
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+    delete:
+      tags: 
+        - "Sumagro"
+      summary: "Elimina una orden."
+      description: "* Se reciben los parametros orderId. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'deleteOrder'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos elimina la orden mediante el metodo deleteOrder, una vez eliminada la order mandara un 200"
+      parameters:
+        - name: orderId
+          in: path
           type: string
-        message:
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+    get:
+      tags: 
+        - "Sumagro"
+      summary: "Obtiene los datos de una orden."
+      description: "* Se reciben los parametros orderId. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'getOrderDetails'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos, mostrara los datos de una orden mediante el metodo getOrderDetails, una vez obtenido los datos de la orden mandara un 200"
+      parameters:
+        - name: orderId
+          in: path
           type: string
-    userRegisterRequest:
-      type: object
-      properties:
-        email:
-          type: "string"
-        password:
-          type: "string"
-    orderRequest:
-      type: object
-      properties:
-        enterpriseName:
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ordenDetails'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+  /sumagro-app/token:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "crea un token"
+      description: "* Se reciben los parametros token. \n * En el end-point recibira y verificara el parametro y los mandara a un manejador de eventos 'controller' al metodo 'saveToken'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos creara un token mediante el metodo saveToken, una vez registrado la order mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 1 atributo: token."
+        required: true
+        schema:
+          $ref: "#/definitions/token"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+    delete:
+      tags: 
+        - "Sumagro"
+      summary: "elimina un token"
+      description: "* Se reciben los parametros token. \n * En el end-point recibira y verificara el parametro y los mandara a un manejador de eventos 'controller' al metodo 'deleteToken'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos elimina un token mediante el metodo deleteToken, una vez registrado la order mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 1 atributo: token."
+        required: true
+        schema:
+          $ref: "#/definitions/token"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+  /sumagro-app/generate-pdf/:orderId:
+    get:
+      tags: 
+        - "Sumagro"
+      summary: "genera un pdf"
+      description: "* Se reciben el parametro orderId. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'generatePdf'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que el parametro se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos creara el pdf con los datos de la orden mediante el metodo getRemissionDocument, una vez creado el documento pdf mandara un 200"
+      parameters:
+        - name: orderId
+          in: path
           type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+  /sumagro-app/send-pdf/:orderId:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "envia un pdf ediante un correo electronico"
+      description: "* Se reciben el parametro orderId. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'sendEmail'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que el parametro se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos creara el pdf con los datos de la orden mediante el metodo getRemissionDocument, una vez creado el documento lo envia por correo electronico mediante el metodo sendMail, una vez enviado el documento pdf mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 1 atributo: email."
+        required: true
+        schema:
+          $ref: "#/definitions/email"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+  /sumagro-app/generate-pdf/chargeformat:
+    get:
+      tags: 
+        - "Sumagro"
+      summary: "genera un pdf"
+      description: "* No recibe ningun parametro. \n * En el end-point llama a un manejador de eventos 'controller' al metodo 'getChargeData'\n * El metodo creara el pdf mediante el metodo getChargeFormat, una vez creado mandara un 200"
+      parameters:
+        - name: orderId
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+  /sumagro-app/scan/sacks/Distribution:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "registra el escaneo de sacos"
+      description: "* Recibira un request con los parametros sacks,orderId,ingenioId,plates \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'registerSacksDistribution'\n* Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos registrara el escaneo mediante el metodo registerSacksDistribution, una vez registrado el escaneo mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 4 atributos: sacks,orderId,ingenioId,plates."
+        required: true
+        schema:
+          $ref: "#/definitions/sacks"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+  /sumagro-app/ingenio/register:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "Registrar un ingenio"
+      description: "* Recibira un request con los parametros name,address,email \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'registerIngenio'\n* Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos verifica que el ingenio no exista, si no existe lo registra mediante el metodo registerIngenio, una vez registrado el escaneo mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 3 atributos: name,address,email."
+        required: true
+        schema:
+          $ref: "#/definitions/ingenio"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/resultOkUser'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+  /sumagro-app/ingenios:
+    get:
+      tags: 
+        - "Sumagro"
+      summary: "Obtiene los ingenios"
+      description: "* No recibe ningun parametro. \n * En el end-point llama a un manejador de eventos 'controller' al metodo 'getIngenios'\n * El metodo hara uso de firebaseHelper mediante el uso del metodo getIngenios, una vez creado mandara un 200."
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/ingenios'
+  /sumagro-app/ingenio/:ingenioId:
+    delete:
+      tags: 
+        - "Sumagro"
+      summary: "Elimina un ingenio"
+      description: "* Se reciben el parametro ingenioId. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'deleteIngenio'\n * Verificara que sea el administrador quien hace use del servicio en caso que no lo sea retornara un error 401\n Verifica que el parametro se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos eliminara el ingenio mediante el metodo deleteIngenio, una vez enviado el documento pdf mandara un 200"
+      parameters:
+        - name: ingenioId
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+        401:
+          description: "unauthorized user"
+          schema:
+            $ref: '#/definitions/unauthorized'
+  /sumagro-app/codes/regions:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "Registrar codigo de area"
+      description: "* Recibira un request con los parametros code y address \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'vinculateCodeRegions'\n* Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados los datos verifica que el codigo de area no exista, si no existe lo registra mediante el metodo vinculateCodeRegions, una vez registrado el escaneo mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 3 atributos: name,address,email."
+        required: true
+        schema:
+          $ref: "#/definitions/codeRegion"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/resultOkUser'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+  /sumagro-app/sacks:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "Registrar sacos"
+      description: "* Recibira un request con los parametros SackId y ingenioId \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'registerSacks'\n* Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados lo registra mediante el metodo registerSacks, una vez registrado el escaneo mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 3 atributos: name,address,email."
+        required: true
+        schema:
+          $ref: "#/definitions/postSacks"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/resultOkUser'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+  /sumagro-app/order/status/:orderId:
+    get:
+      tags: 
+        - "Sumagro"
+      summary: "Obtiene el status de una orden"
+      description: "* Recibe como parametro orderId. \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'getStatusOrder'\n* Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados lo registra mediante el metodo registerSacks, una vez registrado el escaneo mandara un 200"
+      parameters:
+        - name: orderId
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/statusOrder'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+  /sumagro-app/database/:ingenioId:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "Registrar un ingenio en la base de datos"
+      description: "* Recibira un request con el parametro records y en el path records \n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'uploadDatabaseIngenio'\n* Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados lo registra en la base de datos mediante el metodo saveDatabase, una vez registrado el escaneo mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 1 atributo: records."
+        required: true
+        schema:
+          $ref: "#/definitions/records"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+  /sumagro-app/send/notification:
+    post:
+      tags: 
+        - "Sumagro"
+      summary: "Envia notificaciones"
+      description: "* Recibira un request con el parametro tokens-\n * En el end-point recibira y verificara los parametros y los mandara a un manejador de eventos 'controller' al metodo 'notificationPush'\n* Verifica que los parametros se obtengan en caso que no lo obtenga retornara un error 400.\n * Una vez verificados lo registra en la base de datos mediante el metodo notification, una vez que envia las notificaciones el escaneo mandara un 200"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "El objeto de request contiene 1 atributo: tokens."
+        required: true
+        schema:
+          $ref: "#/definitions/tokens"
+      responses:
+        200:
+          description: OK
+          schema:
+            $ref: '#/definitions/emptyObject'
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: '#/definitions/resultBadRequest'
+  
+  
+schemes:
+ - https
+definitions:
+  registerUser:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+      uid: 
+        type: "string"
+      rol:
+        type: "string"
+      ingenioId:
+        type: "string"
+  resultOkUser:
+    type: "object"
+    properties:
+      msg:
+        type: "string"
+  resultBadRequest:
+    type: "object"
+    properties:
+      msg:
+        type: "string"
+  unauthorized:
+    type: "object"
+    properties:
+      error:
+          type: "object"
+          properties:
+            code:
+              type: "string"
+            message:
+              type: "string"
+  emptyObject:
+    type: "object"
+  orderGet:
+    type: "array"
+    items:
+      type: "object"
+      properties:
         RFC:
-          type: string
+          type: "string"
         address:
-          type: string
-        client:
-          type: string
-        clientAddress:
-          type: string
-        remissionNumber:
-          type: number
-        shippingDate:
-          type: string
-          format: date
-        subOrders:
-          type: array
-          items:
-            type: object
-            properties:
-              quantity:
-                type: number
-              unit:
-                type: string
-              description:
-                type: string
-              unitPrice:
-                type: number
-              total:
-                type: number
-        totalGeneral:
-          type: number
+          type: "string"
         advance:
-          type: number
-    listOrders:
-      type: array
-      items:
-        type: object
-        properties:
-          orderId:
-            type: number
-          enterpriseName:
-            type: string
-          RFC:
-            type: string
-          address:
-            type: string
-          client:
-            type: string
-          clientAddress:
-            type: string
-          remissionNumber:
-            type: number
-          shippingDate:
-            type: string
-            format: date
-          subOrders:
-            type: array
-            items:
-              type: object
-              properties:
-                quantity:
-                  type: number
-                unit:
-                  type: string
-                description:
-                  type: string
-                unitPrice:
-                  type: number
-                total:
-                  type: number
-          totalGeneral:
-            type: number
-          advance:
-            type: number
-          status:
-            type: string
-    orderStatusUpdate:
-      type: object
-      properties:
+          type: "string"
+        client:
+          type: "string"
+        clientAddress:
+          type: "string"
+        enterpriseName:
+          type: "string"
+        operationUnit:
+          type: "string"
+        operator:
+          type: "string"
+        plates:
+          type: "string"
+        remissionNumber:
+          type: "string"
+        shippingDate:
+          type: "string"
         status:
           type: "string"
-          enum:
-            - TRANSIT
-            - DELIVERED
-            - ORDER_CLOSED
-          
-      
-  
-   
+        subOrders:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              description:
+                type: "string"
+              quantity:
+                type: "number"
+              total:
+                type: "number"
+              unit:
+                type: "string"
+              unitPrice:
+                type: "number"
+        totalGeneral:
+          type: "string"
+        id:
+          type: "string"
+  ordenDetails:
+    type: "object"
+    properties:
+      RFC:
+          type: "string"
+      address:
+        type: "string"
+      advance:
+        type: "string"
+      client:
+        type: "string"
+      clientAddress:
+        type: "string"
+      enterpriseName:
+        type: "string"
+      operationUnit:
+        type: "string"
+      operator:
+        type: "string"
+      plates:
+        type: "string"
+      remissionNumber:
+        type: "string"
+      shippingDate:
+        type: "string"
+      status:
+        type: "string"
+      totalGeneral:
+          type: "string"
+  token:
+    type: "object"
+    properties:
+      token:
+        type: "string"
+  email:
+    type: "object"
+    properties:
+      email:
+        type: "string"
+  sacks:
+    type: "object"
+    properties:
+      sacks:
+        type: "string"
+      orderId:
+        type: "string"
+      ingenioId:
+        type: "string"
+      plates:
+        type: "string"
+  ingenio:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+      address:
+        type: "string"
+      email:
+        type: "string"
+  ingenios:
+    type: "array"
+    items:
+      type: "object"
+      properties:
+        address:
+          type: "string"
+        email:
+          type: "string"
+        id:
+          type: "string"
+        name:
+          type: "string"
+  codeRegion:
+    type: "object"
+    properties:
+      code:
+        type: "string"
+      address:
+        type: "string"
+  postSacks:
+    type: "object"
+    properties:
+      sackId:
+        type: "string"
+      ingenioId:
+        type: "string"
+  statusOrder:
+    type: "object"
+    properties:
+      status:
+        type: "string"
+  records:
+    type: "object"
+    properties:
+      records:
+        type: "string"
+  tokens:
+    type: "array"
+    items:
+      type: "string"
